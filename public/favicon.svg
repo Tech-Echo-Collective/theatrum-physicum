@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Theatrum Physicum</title>
+  <desc id="desc">A Roman amphitheatre reduced to an oval arena and three open arches.</desc>
+  <g fill="none" stroke="#61d7de" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="32" cy="19" rx="24" ry="8"/>
+    <path d="M8 19v24Q32 61 56 43V19"/>
+    <path d="M15 47V36a4 4 0 0 1 8 0v15"/>
+    <path d="M28 52V39a4 4 0 0 1 8 0v13"/>
+    <path d="M41 51V36a4 4 0 0 1 8 0v11"/>
+  </g>
+</svg>

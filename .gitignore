@@ -5,3 +5,15 @@
 .env
 .env.local
 .env.*.local
+
+# Product build and tooling
+node_modules/
+dist/
+.next/
+.wrangler/
+.vite/
+*.tsbuildinfo
+coverage/
+
+.vinext/
+next-env.d.ts
