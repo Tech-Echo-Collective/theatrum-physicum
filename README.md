@@ -1,10 +1,12 @@
-# Theatrum Physica
+# Theatrum Physicum
 
 **Construct. Evolve. Observe.**
 
+Part of Tech Echo Physica, a Tech Echo Collective project family for exploring physics through research mapping, knowledge structures, and interactive physical systems.
+
 ## Overview
 
-Theatrum Physica is an interactive physics environment for constructing, evolving, and visualizing dynamical systems from their mathematical definitions.
+Theatrum Physicum is an interactive physics environment for constructing, evolving, and visualizing dynamical systems from their mathematical definitions.
 
 The aim is to turn mathematical physical models into systems that can be explored as they evolve, connecting equations, initial conditions, and observable behavior. Mathematical definitions will drive the interaction, with visualization making the resulting dynamics visible.
 
@@ -29,9 +31,11 @@ The first implementation will likely use a **Simple Harmonic Oscillator** as an 
 - Add basic observables and interactive controls.
 - Test the abstraction with additional dynamical systems later.
 
-## Tech Echo Collective
+## Tech Echo Physica
 
-Theatrum Physica is part of the **Tech Echo Collective** physics ecosystem, alongside [Physics Atlas](https://atlas.techecho.org/) for the research landscape and [Illuminatio Physica](https://illuminatio.techecho.org/) for knowledge structure. Theatrum Physica will focus on physical dynamics and interactive evolution.
+The family brings together three distinct projects: [Atlas Physicus](https://atlas.techecho.org/) for the research landscape, [Illuminatio Physica](https://illuminatio.techecho.org/) for knowledge structure, and Theatrum Physicum for physical dynamics and interactive evolution.
+
+Project repositories: [Atlas Physicus](https://github.com/Tech-Echo-Collective/atlas-physicus), [Illuminatio Physica](https://github.com/Tech-Echo-Collective/illuminatio-physica), and [Theatrum Physicum](https://github.com/Tech-Echo-Collective/theatrum-physicum).
 
 Visit [Tech Echo](https://techecho.org/).
 
