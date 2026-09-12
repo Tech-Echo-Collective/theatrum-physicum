@@ -13,7 +13,6 @@ export type WorldDefinition = {
     coordinates: { space: string[]; time: string[] };
     metric: { customDraft: string };
   };
-  dynamics: 'classical-approximation';
   contents: PhysicalEntity[];
   interactions: InteractionKind[];
   approximations: { ignoredInteractions: InteractionKind[] };
@@ -39,7 +38,6 @@ export function createWorld(): WorldDefinition {
       coordinates: { space: ['x', 'y', 'z'], time: ['t'] },
       metric: { customDraft: '' },
     },
-    dynamics: 'classical-approximation',
     contents: [],
     interactions: ['electromagnetism', 'gravity'],
     approximations: { ignoredInteractions: [] },

@@ -1,6 +1,13 @@
 'use client';
 
 import {
+  PhysicsControls,
+  PhysicsResults,
+  SolverChoice,
+  solverNames,
+  usePhysics,
+} from '@/components/physics-workbench';
+import {
   useEffect,
   useId,
   useReducer,
@@ -9,7 +16,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import type { Dispatch, ReactNode } from 'react';
-import { Plus, Pause, Play, RotateCcw, X, Circle, Waves } from 'lucide-react';
+import { Plus, X, Circle, Waves } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -371,7 +378,7 @@ function WorldStage({
               )
             : t('Coordinate preview', '坐标预览')}
           {geometry === 'custom'
-            ? t(' · metric not evaluated', ' · 度规未求值')
+            ? t(' · metric awaiting compilation', ' · 度规待编译')
             : ''}
         </span>
         <span>±{extent.toPrecision(3)} m</span>
@@ -388,6 +395,8 @@ export function WorldBuilder({
   setLocale: (locale: Locale) => void;
 }) {
   const [world, dispatch] = useReducer(worldReducer, undefined, createWorld);
+  const physics = usePhysics(world);
+  const controlsRef = useRef<HTMLElement>(null);
   const sequence = useRef(0);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const t: Translate = (en, zh) => (locale === 'zh' ? zh : en);
@@ -440,7 +449,12 @@ export function WorldBuilder({
         </div>
       </header>
       <div className="workspace">
-        <aside className="controls" aria-labelledby="definition-title">
+        <aside
+          ref={controlsRef}
+          className="controls"
+          aria-labelledby="definition-title"
+          onInputCapture={physics.invalidate}
+        >
           <div className="controls-heading">
             <h2 id="definition-title">{t('World definition', '世界定义')}</h2>
             <p>
@@ -524,7 +538,7 @@ export function WorldBuilder({
                     id="custom-metric"
                     rows={4}
                     value={spacetime.metric.customDraft}
-                    placeholder="g_ab = …"
+                    placeholder="diag(-1, 1, 1, 1)"
                     maxLength={4000}
                     onChange={(e) =>
                       dispatch({ type: 'metric', value: e.target.value })
@@ -532,8 +546,8 @@ export function WorldBuilder({
                   />
                   <p className="hint">
                     {t(
-                      'Unevaluated draft. No parsing or physical validation.',
-                      '未求值的草稿，不进行解析或物理验证。',
+                      'Use diag(a,b,…) or comma-separated entries and semicolon-separated rows. Match both sides of the diagonal. Compile with the geodesic model.',
+                      '使用 diag(a,b,…) 或逗号分列、分号分行的矩阵。非对角项须对称填写，选择测地线模型进行编译。',
                     )}
                   </p>
                 </div>
@@ -549,8 +563,8 @@ export function WorldBuilder({
                           '空间度规。时间存在时，作为独立参数。',
                         )
                       : t(
-                          'Spacetime metric, time first. One time dimension; dynamics remain a classical approximation.',
-                          '时空度规，时间在前。含一个时间维度；动力学仍采用经典近似。',
+                          'Spacetime metric, time first. Geometry does not automatically change the selected dynamical model.',
+                          '时空度规，时间在前。几何不会自动改变所选动力学模型。',
                         )}
                   </p>
                 </>
@@ -700,12 +714,12 @@ export function WorldBuilder({
                   ) : (
                     <>
                       <span className="status-pill neutral">
-                        {t('Undefined', '未定义')}
+                        {t('Scalar field entry', '标量场条目')}
                       </span>
                       <p className="hint">
                         {t(
-                          'Field configuration and interaction applicability are not assessed yet. This entry does not create an active field.',
-                          '场配置与相互作用适用性尚未评估。此条目不会创建正在作用的场。',
+                          'Select Scalar PDE and configure the field equation, profile and boundaries under Operations. Requires Euclidean 1+1D.',
+                          '选择标量 PDE，在操作区配置场方程、初始分布与边界；需要欧氏 1+1 维。',
                         )}
                       </p>
                     </>
@@ -719,64 +733,66 @@ export function WorldBuilder({
             number="03"
             title={t('Interactions', '相互作用')}
           >
+            <SolverChoice physics={physics} t={t} />
             <div className="dynamics-row">
               <span>{t('Dynamics', '动力学')}</span>
-              <strong>{t('Classical approximation', '经典近似')}</strong>
+              <strong>{solverNames[physics.settings.kind]}</strong>
             </div>
             <p className="hint interaction-intro">
               {t(
-                'Mass and charge make interactions applicable. Eligibility does not imply a computed force or a self-force.',
-                '质量与电荷决定相互作用的适用性。适用不代表已计算作用力或存在自作用力。',
+                'In N-body, positive masses source Newtonian gravity and charges source pairwise electrostatic forces. Other models use their own equations.',
+                '在 N-body 中，正质量产生牛顿引力，电荷产生粒子间静电力。其他模型使用各自的方程。',
               )}
             </p>
-            {interactions.map((interaction) => (
-              <div className="interaction-card" key={interaction.kind}>
-                <div className="interaction-heading">
-                  <h4 id={`${interaction.kind}-name`}>
-                    {names[interaction.kind]}
-                  </h4>
-                  <span className={`status-pill ${interaction.status}`}>
-                    {interaction.status === 'enabled'
-                      ? t('Enabled', '已启用')
-                      : interaction.status === 'ignored'
-                        ? t('Ignored', '已忽略')
-                        : t('Not applicable', '不适用')}
-                  </span>
+            {physics.settings.kind === 'nbody' &&
+              interactions.map((interaction) => (
+                <div className="interaction-card" key={interaction.kind}>
+                  <div className="interaction-heading">
+                    <h4 id={`${interaction.kind}-name`}>
+                      {names[interaction.kind]}
+                    </h4>
+                    <span className={`status-pill ${interaction.status}`}>
+                      {interaction.status === 'enabled'
+                        ? t('Enabled', '已启用')
+                        : interaction.status === 'ignored'
+                          ? t('Ignored', '已忽略')
+                          : t('Not applicable', '不适用')}
+                    </span>
+                  </div>
+                  <p className="hint">
+                    {interaction.applicable
+                      ? `${t('Applicable', '适用')} · ${interaction.sourceCount} ${interaction.kind === 'gravity' ? t('positive-mass source(s)', '个正质量源') : t('charged source(s)', '个带电源')}`
+                      : interaction.kind === 'gravity'
+                        ? t(
+                            'Requires a particle with positive mass.',
+                            '需要具有正质量的粒子。',
+                          )
+                        : t(
+                            'Requires a particle with nonzero charge.',
+                            '需要具有非零电荷的粒子。',
+                          )}
+                  </p>
+                  <label className="approximation-choice">
+                    <Checkbox
+                      aria-labelledby={`${interaction.kind}-name ${interaction.kind}-ignore-label`}
+                      disabled={!interaction.applicable}
+                      checked={world.approximations.ignoredInteractions.includes(
+                        interaction.kind,
+                      )}
+                      onCheckedChange={(checked) =>
+                        dispatch({
+                          type: 'ignore',
+                          kind: interaction.kind,
+                          ignored: checked === true,
+                        })
+                      }
+                    />
+                    <span id={`${interaction.kind}-ignore-label`}>
+                      {t('Ignore as an approximation', '作为近似而忽略')}
+                    </span>
+                  </label>
                 </div>
-                <p className="hint">
-                  {interaction.applicable
-                    ? `${t('Applicable', '适用')} · ${interaction.sourceCount} ${interaction.kind === 'gravity' ? t('positive-mass source(s)', '个正质量源') : t('charged source(s)', '个带电源')}`
-                    : interaction.kind === 'gravity'
-                      ? t(
-                          'Requires a particle with positive mass.',
-                          '需要具有正质量的粒子。',
-                        )
-                      : t(
-                          'Requires a particle with nonzero charge.',
-                          '需要具有非零电荷的粒子。',
-                        )}
-                </p>
-                <label className="approximation-choice">
-                  <Checkbox
-                    aria-labelledby={`${interaction.kind}-name ${interaction.kind}-ignore-label`}
-                    disabled={!interaction.applicable}
-                    checked={world.approximations.ignoredInteractions.includes(
-                      interaction.kind,
-                    )}
-                    onCheckedChange={(checked) =>
-                      dispatch({
-                        type: 'ignore',
-                        kind: interaction.kind,
-                        ignored: checked === true,
-                      })
-                    }
-                  />
-                  <span id={`${interaction.kind}-ignore-label`}>
-                    {t('Ignore as an approximation', '作为近似而忽略')}
-                  </span>
-                </label>
-              </div>
-            ))}
+              ))}
           </Section>
           <Section
             id="initial-title"
@@ -785,8 +801,8 @@ export function WorldBuilder({
           >
             <p className="hint">
               {t(
-                'Positions and velocities above define the initial state. No momentum is derived.',
-                '上方的位置与速度定义初始状态，不推导动量。',
+                'Particle positions and velocities define N-body initial data. ODE, field and geodesic initial data are edited under Operations.',
+                '粒子的位置与速度定义 N-body 初态。ODE、场与测地线的初始数据在操作区编辑。',
               )}
             </p>
             {particles.length ? (
@@ -814,42 +830,19 @@ export function WorldBuilder({
                 {t('No particle initial conditions yet.', '尚无粒子初始条件。')}
               </p>
             )}
-            <dl className="reserved-conditions">
-              <div>
-                <dt>{t('Field configurations', '场配置')}</dt>
-                <dd>{t('Not defined', '未定义')}</dd>
-              </div>
-              <div>
-                <dt>{t('Boundary conditions', '边界条件')}</dt>
-                <dd>{t('Not defined', '未定义')}</dd>
-              </div>
-            </dl>
           </Section>
           <Section
             id="operations-title"
             number="05"
             title={t('Operations', '操作')}
           >
-            <div className="operation-actions" aria-describedby="runtime-note">
-              <Button disabled>
-                <Play aria-hidden="true" />
-                {t('Run', '运行')}
-              </Button>
-              <Button variant="outline" disabled>
-                <Pause aria-hidden="true" />
-                {t('Pause', '暂停')}
-              </Button>
-              <Button variant="outline" disabled>
-                <RotateCcw aria-hidden="true" />
-                {t('Reset', '重置')}
-              </Button>
-            </div>
-            <p id="runtime-note" className="hint">
-              {t(
-                'Evolution is not available yet. These controls become operational with a real runtime.',
-                '演化功能尚未开放。这些控件将在接入真实运行系统后启用。',
-              )}
-            </p>
+            <PhysicsControls
+              physics={physics}
+              t={t}
+              hasInvalidDraft={() =>
+                !!controlsRef.current?.querySelector('[aria-invalid="true"]')
+              }
+            />
           </Section>
         </aside>
         <div className="world-area">
@@ -860,7 +853,11 @@ export function WorldBuilder({
             <div className="summary-topline">
               <span className="eyebrow">{t('CURRENT WORLD', '当前世界')}</span>
               <span className="world-state">
-                {t('Defined · not evolving', '已定义 · 未演化')}
+                {physics.active?.running
+                  ? t('Evolving', '演化中')
+                  : physics.active
+                    ? t('Compiled', '已编译')
+                    : t('Definition · not compiled', '定义中 · 未编译')}
               </span>
             </div>
             <h2 id="current-world-title">
@@ -873,24 +870,27 @@ export function WorldBuilder({
             </h2>
             <div className="world-tags" aria-live="polite">
               <span className="status-pill theory">
-                {t('Classical approximation', '经典近似')}
+                {solverNames[physics.settings.kind]}
               </span>
-              {interactions
-                .filter((interaction) => interaction.applicable)
-                .map((interaction) => (
-                  <span
-                    key={interaction.kind}
-                    className={`status-pill ${interaction.status}`}
-                  >
-                    {names[interaction.kind]}
-                    {interaction.status === 'ignored'
-                      ? t(' · Ignored', ' · 已忽略')
-                      : ''}
-                  </span>
-                ))}
+              {physics.settings.kind === 'nbody' &&
+                interactions
+                  .filter((interaction) => interaction.applicable)
+                  .map((interaction) => (
+                    <span
+                      key={interaction.kind}
+                      className={`status-pill ${interaction.status}`}
+                    >
+                      {names[interaction.kind]}
+                      {interaction.status === 'ignored'
+                        ? t(' · Ignored', ' · 已忽略')
+                        : ''}
+                    </span>
+                  ))}
               {spacetime.geometry === 'custom' && (
                 <span className="status-pill neutral">
-                  {t('Metric unevaluated', '度规未求值')}
+                  {physics.active?.plan.kind === 'geodesic'
+                    ? t('Metric evaluated', '度规已求值')
+                    : t('Metric awaiting compilation', '度规待编译')}
                 </span>
               )}
             </div>
@@ -898,7 +898,15 @@ export function WorldBuilder({
               <div>
                 <dt>{t('Time', '时间')}</dt>
                 <dd>
-                  —<span>{t('not started', '尚未开始')}</span>
+                  {physics.active
+                    ? Number(
+                        physics.active.state.time.toPrecision(6),
+                      ).toString()
+                    : '—'}
+                  <span>
+                    {physics.active?.plan.timeLabel ??
+                      t('not started', '尚未开始')}
+                  </span>
                 </dd>
               </div>
               <div>
@@ -909,16 +917,29 @@ export function WorldBuilder({
                 <dt>{t('Fields', '场')}</dt>
                 <dd>
                   {fieldCount.toString().padStart(2, '0')}
-                  {fieldCount > 0 && <span>{t('undefined', '未定义')}</span>}
+                  {fieldCount > 0 && (
+                    <span>
+                      {physics.active?.plan.kind === 'field'
+                        ? t('compiled', '已编译')
+                        : t('uncompiled', '未编译')}
+                    </span>
+                  )}
                 </dd>
               </div>
               <div>
                 <dt>{t('Enabled interactions', '启用的相互作用')}</dt>
-                <dd>{activeCount.toString().padStart(2, '0')}</dd>
+                <dd>
+                  {physics.settings.kind === 'nbody'
+                    ? activeCount.toString().padStart(2, '0')
+                    : '—'}
+                </dd>
               </div>
             </dl>
           </section>
-          <WorldStage world={world} particles={particles} t={t} />
+          <PhysicsResults physics={physics} t={t} />
+          {!physics.active && physics.settings.kind === 'nbody' && (
+            <WorldStage world={world} particles={particles} t={t} />
+          )}
         </div>
       </div>
     </main>

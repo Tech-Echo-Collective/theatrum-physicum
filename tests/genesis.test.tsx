@@ -86,7 +86,7 @@ describe('Genesis and world builder', () => {
       screen.getByRole('heading', { name: 'Minkowski · 3+1D' }),
     ).toBeTruthy();
     expect(screen.getByText('diag(-1, 1, 1, 1)')).toBeTruthy();
-    expect(screen.getAllByText('Classical approximation')).toHaveLength(2);
+    expect(screen.getAllByText('N-body · Newton / Coulomb')).toHaveLength(3);
     expect(
       (screen.getByRole('combobox', { name: 'Time' }) as HTMLButtonElement)
         .disabled,
@@ -105,9 +105,9 @@ describe('Genesis and world builder', () => {
     ).toBeTruthy();
     await user.click(screen.getByRole('button', { name: 'Field' }));
     const field = screen.getByRole('article', { name: 'Field F2' });
-    expect(within(field).getByText('Undefined')).toBeTruthy();
+    expect(within(field).getByText('Scalar field entry')).toBeTruthy();
     expect(
-      within(field).getByText(/does not create an active field/),
+      within(field).getByText(/configure the field equation/),
     ).toBeTruthy();
     expect(
       (screen.getByRole('button', { name: 'Run' }) as HTMLButtonElement)

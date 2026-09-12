@@ -840,3 +840,126 @@ textarea:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+/* Evolution uses the existing control, border and typography system. */
+.physics-input {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 14px;
+  min-width: 0;
+}
+.physics-input label {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.physics-input input,
+.physics-input textarea,
+.physics-select {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.physics-select {
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 10px;
+  color: var(--foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.physics-select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.physics-syntax {
+  margin: 14px 0;
+}
+.compile-button {
+  width: 100%;
+  margin: 16px 0 12px;
+}
+.operation-actions {
+  flex-wrap: wrap;
+}
+.physics-error {
+  color: #ffb4a9;
+  background: rgba(190, 55, 45, 0.09);
+  border: 1px solid rgba(255, 140, 125, 0.4);
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  margin-top: 14px;
+}
+.physics-results {
+  padding: 28px 32px;
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+.physics-results h3 {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.7;
+  margin: 12px 0 18px;
+}
+.physics-readings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 18px;
+}
+.physics-readings dt {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.physics-readings dd {
+  margin-top: 5px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.physics-plot {
+  width: 100%;
+  max-height: 50vh;
+  min-height: 230px;
+  margin-top: 20px;
+  overflow: visible;
+}
+.physics-details {
+  border-top: 1px solid var(--border);
+  padding: 12px 0;
+  margin-top: 12px;
+  font-size: 12px;
+}
+.physics-details summary {
+  cursor: pointer;
+  color: var(--foreground);
+}
+.physics-details dl > div {
+  display: grid;
+  gap: 5px;
+  margin: 12px 0;
+}
+.physics-details dt {
+  color: var(--muted-foreground);
+}
+.physics-details dd {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+  max-height: 180px;
+  overflow: auto;
+}
+.physics-details ul {
+  padding-left: 18px;
+  color: var(--muted-foreground);
+  line-height: 1.8;
+  margin-top: 12px;
+}
+@media (max-width: 520px) {
+  .physics-results {
+    padding: 20px;
+  }
+  .physics-readings {
+    grid-template-columns: 1fr 1fr;
+  }
+}

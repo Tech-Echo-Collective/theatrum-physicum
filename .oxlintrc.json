@@ -57,7 +57,10 @@
   },
   "overrides": [
     {
-      "files": ["components/genesis-app.tsx"],
+      "files": [
+        "components/genesis-app.tsx",
+        "components/physics-workbench.tsx"
+      ],
       "rules": {
         "jsx-a11y/prefer-tag-over-role": "off",
         "nextjs/no-img-element": "off"

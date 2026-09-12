@@ -38,7 +38,6 @@ describe('World definition', () => {
     });
     world = worldReducer(world, { type: 'geometry', geometry: 'minkowski' });
     expect(metricDescription(world)).toBe('diag(-1, 1, 1, 1)');
-    expect(world.dynamics).toBe('classical-approximation');
     expect(
       getInteractions(world).find((i) => i.kind === 'gravity')?.status,
     ).toBe('ignored');
